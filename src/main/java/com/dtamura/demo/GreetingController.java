@@ -19,8 +19,11 @@ public class GreetingController {
 
    private Tracer tracer;
 
+   private NormalClass normal;
+
    public GreetingController(OpenTelemetry openTelemetry) {
       this.tracer = openTelemetry.getTracer(GreetingController.class.getName(), "0.1.0");
+      this.normal = new NormalClass(openTelemetry);
    }
 
    @GetMapping("/greeting")
@@ -29,9 +32,38 @@ public class GreetingController {
       Span span = tracer.spanBuilder("hello").startSpan();
       try (Scope scope = span.makeCurrent()) {
          // span
+         hoge();
       } finally {
          span.end();
       }
       return new Greeting(counter.incrementAndGet(), String.format(template, name));
    }
+
+   public void hoge() {
+      Span span = tracer.spanBuilder("hoge").startSpan();
+      try (Scope scope = span.makeCurrent()) {
+         long id = Thread.currentThread().getId();
+         span.setAttribute("ThreadID", id);
+         System.out.println("Thread ID: "+ id);
+         fuga();
+         piyo();
+      } finally {
+         span.end();
+      }
+      span.end();
+   }
+
+   public void fuga() {
+      Span span = tracer.spanBuilder("fuga").startSpan();
+      span.end();
+   }
+
+   public void piyo() {
+      Span span = tracer.spanBuilder("piyo").startSpan();
+      try (Scope scope = span.makeCurrent()) {
+         normal.piyo();
+      }
+      span.end();
+   }
+
 }
