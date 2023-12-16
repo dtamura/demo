@@ -3,8 +3,6 @@ package com.dtamura.demo;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.opentelemetry.api.OpenTelemetry;
@@ -35,19 +33,15 @@ public class DemoApplication {
 		SpringApplication.run(DemoApplication.class, args);
 	}
 
-	@GetMapping("/hello")
-	public String hello(@RequestParam(value = "name", defaultValue = "World") String name) {
-		return String.format("Hello %s!", name);
-	}
-
 	@Bean
 	public OpenTelemetry openTelemetry() {
+
 		Resource resource = Resource.getDefault().toBuilder()
 				.put(ResourceAttributes.SERVICE_NAME, DemoApplication.class.getName())
 				.put(ResourceAttributes.SERVICE_VERSION, "0.1.0").build();
 
-		OtlpGrpcSpanExporter spanExporter = OtlpGrpcSpanExporter.builder()
-				.setEndpoint("http://otel-collector:4317").build();
+		OtlpGrpcSpanExporter spanExporter = OtlpGrpcSpanExporter.builder().setEndpoint("http://otel-collector:4317")
+				.build();
 
 		SdkTracerProvider sdkTracerProvider = SdkTracerProvider.builder()
 				.addSpanProcessor(SimpleSpanProcessor.create(LoggingSpanExporter.create())) // ログに残す
@@ -71,7 +65,7 @@ public class DemoApplication {
 				.setLoggerProvider(sdkLoggerProvider)
 				.setPropagators(ContextPropagators.create(TextMapPropagator
 						.composite(W3CTraceContextPropagator.getInstance(), W3CBaggagePropagator.getInstance())))
-				.buildAndRegisterGlobal();
+				.build();
 
 		return openTelemetry;
 	}
